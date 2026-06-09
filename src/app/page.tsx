@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { FindFirstMatchLink } from "@/components/FindFirstMatchLink";
+import { GetStartedLink } from "@/components/GetStartedLink";
+import { getCurrentUser } from "@/lib/insforge-server";
 import agentLogImage from "../../public/images/agnet-log.png";
 import dashboardDemoImage from "../../public/images/dashboard-demo.png";
 import jobsListImage from "../../public/images/jobs-lists.png";
@@ -64,7 +67,7 @@ function Logo() {
   );
 }
 
-function Header() {
+function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <header className="border-border border-b bg-surface">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-5 sm:px-8">
@@ -80,28 +83,32 @@ function Header() {
             </a>
           ))}
         </nav>
-        <a className="landing-button-primary min-h-9 px-5 py-2" href="/login">
+        <GetStartedLink
+          className="landing-button-primary min-h-9 px-5 py-2"
+          href={isAuthenticated ? "/dashboard" : "/login"}
+        >
           Start for free
-        </a>
+        </GetStartedLink>
       </div>
     </header>
   );
 }
 
-function ActionButtons() {
+function ActionButtons({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-      <a className="landing-button-primary" href="/login">
+      <GetStartedLink
+        className="landing-button-primary"
+        href={isAuthenticated ? "/dashboard" : "/login"}
+      >
         Get Started <span aria-hidden="true">▶</span>
-      </a>
-      <a className="landing-button-secondary" href="/find-jobs">
-        Find Your First Match
-      </a>
+      </GetStartedLink>
+      <FindFirstMatchLink className="landing-button-secondary" />
     </div>
   );
 }
 
-function Hero() {
+function Hero({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <section className="landing-panel overflow-hidden rounded-none">
       <div className="landing-hero-glow border-border border-b px-6 py-16 text-center sm:px-10 lg:px-16 lg:py-20">
@@ -114,7 +121,7 @@ function Hero() {
           Stop applying blind. JobPilot finds the jobs, researches the
           companies, and gives you everything you need to stand out.
         </p>
-        <ActionButtons />
+        <ActionButtons isAuthenticated={isAuthenticated} />
       </div>
 
       <div className="bg-surface-tertiary px-5 pt-12 pb-14 sm:px-12">
@@ -242,7 +249,7 @@ function Testimonial() {
   );
 }
 
-function BottomCta() {
+function BottomCta({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <section className="landing-panel landing-hero-glow px-6 py-16 text-center sm:px-10 lg:px-16 lg:py-20">
       <h2 className="mx-auto max-w-[820px] font-semibold text-[clamp(2.35rem,5.4vw,4.25rem)] text-text-slate leading-[0.98]">
@@ -252,7 +259,7 @@ function BottomCta() {
         Set up your profile, upload your resume, and start finding matches in
         minutes.
       </p>
-      <ActionButtons />
+      <ActionButtons isAuthenticated={isAuthenticated} />
     </section>
   );
 }
@@ -287,12 +294,15 @@ function Footer() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+  const isAuthenticated = Boolean(user);
+
   return (
     <main className="min-h-screen bg-background">
-      <Header />
+      <Header isAuthenticated={isAuthenticated} />
       <div className="mx-auto max-w-[1280px] px-5 py-14 sm:px-8">
-        <Hero />
+        <Hero isAuthenticated={isAuthenticated} />
         <div className="landing-divider" />
         <JobsFeature />
         <div className="landing-divider" />
@@ -300,7 +310,7 @@ export default function Home() {
         <div className="landing-divider" />
         <Testimonial />
         <div className="landing-divider" />
-        <BottomCta />
+        <BottomCta isAuthenticated={isAuthenticated} />
         <div className="landing-divider" />
         <Footer />
       </div>

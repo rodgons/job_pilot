@@ -1,9 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
-  /* Font */
-  --font-sans: var(--font-inter), sans-serif;
-
+:root {
   /* Page and surface backgrounds */
   --color-background: #f6f7fb;
   --color-surface: #ffffff;
@@ -75,9 +74,7 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-}
 
-:root {
   color-scheme: light;
 }
 
