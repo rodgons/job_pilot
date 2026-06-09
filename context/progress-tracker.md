@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 5 — Dashboard
-**Last completed:** 16 Recent Activity — Real Data
-**Next:** 17 Analytics Charts — PostHog Data
+**Phase:** Phase 1 — Foundation
+**Last completed:** 04 Database Schema
+**Next:** Phase 2 — Profile Page (05 Profile Page UI)
 
 ---
 
@@ -23,27 +23,27 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 2 — Profile Page
 
-- [x] 05 Profile Page — Full UI
-- [x] 06 Profile Save Logic
-- [x] 07 AI Profile Extraction from Resume
-- [x] 08 Resume PDF Generation from Profile
+- [ ] 05 Profile Page — Full UI
+- [ ] 06 Profile Save Logic
+- [ ] 07 AI Profile Extraction from Resume
+- [ ] 08 Resume PDF Generation from Profile
 
 ### Phase 3 — Find Jobs Page
 
-- [x] 09 Find Jobs Page — Full UI
-- [x] 10 Adzuna Job Discovery
-- [x] 11 Filter + Sort + Pagination
+- [ ] 09 Find Jobs Page — Full UI
+- [ ] 10 Adzuna Job Discovery
+- [ ] 11 Filter + Sort + Pagination
 
 ### Phase 4 — Job Details Page
 
-- [x] 12 Job Details Page — Full UI
-- [x] 13 Company Research Agent
+- [ ] 12 Job Details Page — Full UI
+- [ ] 13 Company Research Agent
 
 ### Phase 5 — Dashboard
 
-- [x] 14 Dashboard Page — Full UI
-- [x] 15 Stats Bar — Real Data
-- [x] 16 Recent Activity — Real Data
+- [ ] 14 Dashboard Page — Full UI
+- [ ] 15 Stats Bar — Real Data
+- [ ] 16 Recent Activity — Real Data
 - [ ] 17 Analytics Charts — PostHog Data
 
 ---
@@ -53,11 +53,14 @@ Update this file after every completed feature. Any AI agent reading this should
 - Homepage built as reusable App Router components: `Navbar`, `Hero`, `HowItWorks`, `Features`, `SuccessStory`, `CTASection`, and `Footer`.
 - Landing page visuals rely on shared token-driven helpers in `app/globals.css` (`landing-panel`, `landing-grid`, `landing-hero-glow`, `landing-divider`) instead of component-level hardcoded color values.
 - Landing CTA styling now uses `text-[var(--color-accent-foreground)]` on dark CTAs to guarantee readable contrast on all link/button states.
-- Primary homepage CTAs currently point to `/login` until auth flow is implemented in Feature 02.
+- Primary homepage CTAs currently point to `/login` (auth implemented, redirects to `/dashboard` if already authenticated).
 - Auth uses InsForge `@insforge/sdk` v1.3.1 with the SSR helpers from `@insforge/sdk/ssr`.
 - OAuth starts through local route handlers at `/api/auth/oauth/google` and `/api/auth/oauth/github`; these store the PKCE verifier in an app-owned httpOnly cookie before redirecting to the provider.
-- `/callback` completes the OAuth exchange server-side, sets InsForge auth cookies with `setAuthCookies`, then redirects incomplete or missing profiles to `/profile` and complete profiles to `/dashboard`.
-- Next.js 16 route protection is implemented with root `proxy.ts`, not deprecated `middleware.ts`.
+- `/callback` completes the OAuth exchange server-side, sets InsForge auth cookies with `setAuthCookies`, then redirects to `/dashboard`.
+- Next.js 16 route protection is implemented with root `proxy.ts`.
+- PostHog client and server instances created in `src/lib/posthog-client.ts` and `src/lib/posthog-server.ts`.
+- Tailwind CSS locked at 3.4.17 per project requirements (not v4).
+- Database schema defined in single `database/schema.sql` file, executed via `npx @insforge/cli db import`. All tables have RLS policies filtering by user_id. Resumes bucket created with private (authenticated-only) access.
 - PostHog browser initialization now runs from root `instrumentation-client.ts`, backed by `lib/posthog-client.ts`, and accepts either `NEXT_PUBLIC_POSTHOG_KEY` or PostHog's setup-screen `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`. `NEXT_PUBLIC_POSTHOG_HOST` defaults to US Cloud when omitted.
 - PostHog server tracking is centralized in `lib/posthog-server.ts` with a typed event contract limited to the seven approved JobPilot event names.
 - Authenticated placeholder pages call `posthog.identify()` through `PostHogIdentify`, and current sign-out links call `posthog.reset()` before hitting `/api/auth/logout`.
