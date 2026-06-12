@@ -506,3 +506,25 @@ Last updated: 2026-06-05
 
 **Pattern notes:**
 Three named exports from one file — `CompanyResearchChart`, `JobsOverTimeChart`, `MatchDistributionChart`. All are `"use client"` (recharts needs browser). Colors use CSS variable references (`var(--color-*)`) so they stay token-driven inside recharts props. Left margin is `left: -20` on all charts to trim excess YAxis whitespace. Area gradient defined in `<defs>` with id `jobsGradient`.
+
+---
+
+### Profile Page Full UI
+
+File: src/app/profile/page.tsx
+Last updated: 2026-06-12
+
+| Property         | Class                                                                                                                                                                 |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Background       | `bg-background` page, `bg-surface` cards, `bg-surface-secondary` form controls, work role panels, and inset upload/account rows                                        |
+| Border           | `border border-border` on cards, controls, and role panels; `border border-dashed border-border-muted` on resume drop zone; `border-t border-border` between sections  |
+| Border radius    | `rounded-2xl` cards, `rounded-xl` inset rows/drop zone, `rounded-md` inputs/buttons/tags, `rounded-sm` missing-field tags                                            |
+| Text — primary   | `font-semibold text-2xl text-text-primary` top banner heading, `font-semibold text-lg text-text-primary` card headings, `font-semibold text-base text-text-primary` section headings |
+| Text — secondary | `font-medium text-sm text-text-secondary leading-6` helper text, `text-[11px] font-bold uppercase text-text-secondary` field labels, `text-xs text-text-muted` captions |
+| Spacing          | Page stack `max-w-[900px] px-5 py-9 gap-8`, cards `p-6 sm:p-8`, form grids `grid gap-5 md:grid-cols-2`, form sections `mt-10 border-t pt-8`                           |
+| Hover state      | Primary buttons `hover:bg-accent-dark`, secondary controls `hover:bg-surface-secondary`, LinkedIn button `hover:opacity-90`, text action `hover:text-accent-dark`      |
+| Shadow           | Cards use `shadow-[0_1px_3px_color-mix(in_srgb,var(--color-overlay)_10%,transparent),0_1px_2px_color-mix(in_srgb,var(--color-overlay)_6%,transparent)]`              |
+| Accent usage     | `text-accent` active nav and add-role action, `bg-accent text-accent-foreground` primary actions, `text-error` and light error mix for attention state                |
+
+**Pattern notes:**
+Authenticated app pages that are form-heavy should use the centered `max-w-[900px]` dashboard column from the profile page instead of the generic intro `ProtectedPageShell`. Keep controls compact and scan-friendly: uppercase micro-labels, 44px minimum input height, subtle filled inputs, section dividers, and a single full-width purple save action at the bottom. Repeating form groups, like work roles, use `rounded-xl border border-border bg-surface-secondary p-5` and stay stacked with `grid gap-5`.

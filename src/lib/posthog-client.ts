@@ -19,11 +19,13 @@ export function initPostHog() {
 
   posthog.init(key, {
     api_host: "/relay",
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
     defaults: "2026-01-30",
+    advanced_disable_flags: true,
+    capture_dead_clicks: false,
     capture_exceptions: true,
     disable_session_recording: true,
     disable_surveys: true,
-    disable_feature_flags: true,
     debug: process.env.NODE_ENV === "development",
   });
 }
