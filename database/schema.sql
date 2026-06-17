@@ -42,6 +42,9 @@ CREATE TABLE profiles (
   
   -- Resume & Status
   resume_pdf_url TEXT,
+  resume_pdf_key TEXT,
+  completion_percentage INTEGER DEFAULT 0,
+  missing_fields TEXT[] DEFAULT '{}',
   is_complete BOOLEAN DEFAULT FALSE,
   
   -- Timestamps
@@ -55,6 +58,10 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 -- RLS Policy: Users can view their own profile
 CREATE POLICY profiles_select ON profiles FOR SELECT
   USING (auth.uid() = id);
+
+-- RLS Policy: Users can create their own profile
+CREATE POLICY profiles_insert ON profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
 
 -- RLS Policy: Users can update their own profile
 CREATE POLICY profiles_update ON profiles FOR UPDATE

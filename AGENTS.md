@@ -13,7 +13,7 @@ Backend-as-a-service (BaaS) platform providing:
 - **Database**: PostgreSQL with PostgREST API
 - **Authentication**: Email/password + OAuth (Google, GitHub)
 - **Storage**: File upload/download
-- **AI**: OpenRouter key provisioning and model catalog for direct OpenAI-compatible integrations
+- **AI**: Gemini-powered model integrations using a server-side `GEMINI_API_KEY`
 - **Functions**: Serverless function deployment
 - **Realtime**: WebSocket pub/sub (database + client events)
 
@@ -79,7 +79,7 @@ Available documentation types:
   - `"auth-components-nextjs"` - Pre-built auth UI for Next.js (SSR app)
 - `"storage-sdk"` - File storage operations
 - `"functions-sdk"` - Serverless functions invocation
-- `"ai-integration-sdk"` - AI integration with the provisioned OpenRouter key and OpenAI SDK
+- `"ai-integration-sdk"` - AI integration patterns; this project uses Gemini with `GEMINI_API_KEY`
 - `"deployment"` - Deploy frontend applications via MCP tool
 - `"payments"` - Stripe Checkout, Billing Portal, webhook projections, and fulfillment patterns
 
@@ -94,7 +94,7 @@ Available feature types:
 - `storage` - File storage operations
 - `functions` - Serverless functions invocation
 - `auth` - User authentication
-- `ai` - AI integration with the provisioned OpenRouter key and OpenAI SDK
+- `ai` - AI integration; this project uses Gemini with `GEMINI_API_KEY`
 - `realtime` - Real-time pub/sub (database + client events) via WebSockets
 - `payments` - Stripe Checkout and Billing Portal with webhook-based fulfillment
 
@@ -113,7 +113,7 @@ Payments currently has TypeScript SDK docs only. Use the Payments API reference 
 - Authentication (register, login, logout, profiles)
 - Database CRUD (select, insert, update, delete)
 - Storage operations (upload, download files)
-- AI integration via the provisioned OpenRouter key with the OpenAI SDK or OpenRouter HTTP API
+- AI integration via Gemini using a server-side `GEMINI_API_KEY`
 - Serverless function invocation
 - Payments checkout and customer portal session creation
 
@@ -133,7 +133,7 @@ Payments currently has TypeScript SDK docs only. Use the Payments API reference 
 - Database inserts require array format: `[{...}]`
 - Serverless functions have one endpoint and do not support nested route paths
 - Storage: Upload files to buckets, store URLs in database
-- AI integrations should call OpenRouter directly with `baseURL: "https://openrouter.ai/api/v1"` and a server-side `OPENROUTER_API_KEY`
+- AI integrations should call Gemini from server-side code with `GEMINI_API_KEY`; never expose the key to the browser
 - **EXTRA IMPORTANT**: Use Tailwind CSS 3.4 (do not upgrade to v4). Lock these dependencies in `package.json`
 
 <!-- INSFORGE:START -->
