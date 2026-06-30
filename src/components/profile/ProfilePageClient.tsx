@@ -295,6 +295,8 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isUploading, startUploadTransition] = useTransition();
   const hasResume = Boolean(profile?.resume_pdf_key);
+  const resumeFileName =
+    profile?.resume_pdf_key?.split("/").pop() ?? "resume.pdf";
   const resumeViewUrl = "/api/resume/view";
   const resumeDownloadUrl = "/api/resume/download";
 
@@ -384,6 +386,11 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
         <p className="mt-6 font-semibold text-base text-text-primary">
           {hasResume ? "Resume uploaded" : "Click to upload or drag and drop"}
         </p>
+        {hasResume ? (
+          <p className="mt-1 font-medium text-accent text-sm">
+            {resumeFileName}
+          </p>
+        ) : null}
         <p className="mt-2 font-medium text-sm text-text-secondary">
           PDF formatting only. Maximum file size 5MB.
         </p>
@@ -441,7 +448,7 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
                 Open PDF
               </a>
               <a
-                className="inline-flex min-h-10 items-center justify-center rounded-md bg-surface-muted px-4 font-semibold text-sm text-text-dark transition-colors hover:bg-border"
+                className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 font-semibold text-accent-foreground text-sm transition-opacity hover:opacity-90"
                 download
                 href={resumeDownloadUrl}
               >
