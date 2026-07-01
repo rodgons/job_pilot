@@ -1,72 +1,50 @@
-# Memory — Phase 1 Complete + Database Schema
+# Memory — Feature 07 Resume Extraction
 
-Last updated: 2026-06-09 15:38 PDT
+Last updated: 2026-06-30
 
 ## What was built
 
-**Session work:**
-- Fixed progress tracker (was incorrectly showing phantom features 05-17 already completed; now accurate: Phase 1 items 01-04 done)
-- Architected Feature 04: Database Schema using architect skill
-- Created `database/schema.sql` — 192 lines of PostgreSQL DDL with:
-  - `profiles` table (25 columns) — user profile data, primary key references `auth.users(id)`
-  - `agent_runs` table (7 columns) — job search run history
-  - `jobs` table (28 columns) — discovered jobs with scoring and company research
-  - `agent_logs` table (6 columns) — agent operation logs
-  - RLS policies on all tables (3 per table: SELECT/UPDATE/DELETE filtering by `auth.uid()`)
-  - Indexes on user_id and foreign keys for performance
-  - DROP TABLE IF EXISTS safety for re-runs
-- Created `resumes` storage bucket via `npx @insforge/cli storage create-bucket resumes --private`
-- Executed schema import via `npx @insforge/cli db import database/schema.sql` — 4 tables, 12 RLS policies created
-- Verified all tables and policies exist in InsForge backend
-- Committed both schema.sql and progress tracker updates to git
+- Completed Feature 07: AI Profile Extraction from Resume.
+- Added dependencies in `package.json` / `pnpm-lock.yaml`: `@google/genai` and `pdf-parse@1.1.1`.
+- Added `extractProfile()` server action in `src/actions/profile.ts`.
+- Added server-side PDF parsing from the authenticated user's private InsForge Storage resume.
+- Added Gemini profile extraction with structured JSON output and validation.
+- Added `Extract Profile` UI flow in `src/components/profile/ProfilePageClient.tsx`.
+- Added extracted-profile types in `src/types/profile.ts`.
+- Added `src/types/pdf-parse.d.ts` for the safe `pdf-parse/lib/pdf-parse.js` import.
+- Updated `context/progress-tracker.md` so Feature 07 is complete and Feature 08 is next.
 
 ## Decisions made
 
-- Database schema as single `database/schema.sql` file (not separate migration files) — simpler atomic execution
-- RLS policies in schema.sql immediately after each table (not separate file) — ensures tables never exist unprotected
-- RLS logic: SELECT/UPDATE/DELETE filter by `(auth.uid() = user_id)` or `(auth.uid() = id)` for profiles; INSERT unrestricted (app enforces correct user_id server-side)
-- Used `npx @insforge/cli db import` for schema execution (not `db query`, which is for ad-hoc queries)
-- Used `--private` flag for storage bucket (not `--authenticated`, which doesn't exist in CLI)
-- Progress tracker now shows only completed work; tracker.md is single source of truth for build status
-- InsForge CLI logged in and project linked (project ID: 5976155d-ca52-443f-b192-244a8bab23c2)
+- Extraction fills the profile form only; it does not save automatically. User must review and click Save Profile.
+- The authenticated email remains authoritative and is not overwritten by resume extraction.
+- `pdf-parse@1.1.1` is intentionally used instead of v2 because v2 has bundling/runtime issues under Next/Turbopack server actions.
+- Import `pdf-parse/lib/pdf-parse.js`, not the package root, to avoid the v1 package index debug behavior.
+- Gemini extraction uses `gemini-2.5-flash`, JSON response mode, and schema validation.
+- Gemini thinking is disabled for this deterministic extraction call with `thinkingConfig: { thinkingBudget: 0 }`.
 
 ## Problems solved
 
-- Found correct InsForge CLI command for schema execution (`db import`, not bare `sql`)
-- Found correct storage bucket flag for authenticated access (`--private`, not `--authenticated`)
-- Corrected progress tracker false completion state — restored accuracy of Phase 1 completion
+- Raw `JSON.parse` errors were leaking to the page. Fixed by sanitizing extraction errors before returning to the client.
+- Gemini returned truncated JSON during extraction. Diagnosed from logs showing a 249-character response ending at `"skills":["`. Fixed by increasing `maxOutputTokens` to `4096`, reducing resume input text length, and disabling Gemini thinking.
+- Extraction validation was too strict for partial/null model output. Fixed by normalizing missing strings, nullable fields, arrays, and `yearsExperience` before validation.
+- Added diagnostic logging for PDF parse failures, short extracted text, Gemini request failures, and Gemini response parse failures. Client also logs extraction errors in browser console.
 
 ## Current state
 
-- Phase 1 complete (items 01-04):
-  - [x] 01 Homepage
-  - [x] 02 Auth
-  - [x] 03 PostHog Initialization
-  - [x] 04 Database Schema
-- All 4 tables in InsForge backend, verified via `npx @insforge/cli db tables`
-- All 12 RLS policies active, verified via `npx @insforge/cli db policies`
-- Resumes bucket private and ready for uploads
-- `pnpm run build` passes (from previous session)
-- `pnpm lint` passes (from previous session)
-- Git history clean with feature commits
-- `.env.local` active in IDE (contains NEXT_PUBLIC_INSFORGE_URL and NEXT_PUBLIC_INSFORGE_ANON_KEY from backend setup)
+- Feature 07 is implemented and verified.
+- `pnpm run lint` passes.
+- `pnpm run build` passes.
+- There are uncommitted changes for Feature 07 and related fixes.
+- Playwright is not configured in this repo, so browser automation was not used.
+- Current stage: Phase 2 complete through Feature 07.
 
 ## Next session starts with
 
-Phase 2 — Profile Page.
+Start Feature 08: Resume PDF Generation from Profile.
 
-Feature 05: Build complete profile page UI (`src/app/profile/page.tsx`) with mock data (no save logic yet).
-
-From build-plan.md:
-- Profile needs attention banner at top with completion percentage ring, missing field tags (PHONE, LOCATION, EDUCATION)
-- Resume section with drag/drop upload area, Generate Resume button, Select Resume button
-- Profile Information form with sections: Personal Info, Professional Info, Work Experience (up to 3 roles), Education, Job Preferences
-- All fields from profiles table schema visible (25 columns)
-- Save Profile button at bottom (wired but no-op for this feature)
-- Use shadcn/ui components where possible for consistency with previous features
-
-Use architect skill to surface decisions before coding.
+Implement `POST /api/resume/generate` to read the current profile, use Gemini to generate polished resume content, render a PDF with `@react-pdf/renderer`, upload it to InsForge Storage at `resumes/{user_id}/resume.pdf`, and update the profile resume URL/key.
 
 ## Open questions
 
-- None currently. All Phase 1 infrastructure in place.
+- Confirm whether to keep the temporary extraction diagnostic console logs long-term or remove/reduce them after extraction is stable.

@@ -79,3 +79,9 @@ export type ActionResult = {
   error?: string;
   success?: string;
 };
+
+export type ExtractedProfile = Partial<ProfileInput>;
+
+export type ExtractProfileResult = ActionResult & {
+  profile?: ExtractedProfile;
+};

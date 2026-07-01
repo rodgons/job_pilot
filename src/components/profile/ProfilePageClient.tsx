@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { saveProfile, uploadResume } from "@/actions/profile";
+import { extractProfile, saveProfile, uploadResume } from "@/actions/profile";
 import { calculateCompletion, normalizeList } from "@/lib/profile-utils";
 import type {
   ActionResult,
   Education,
+  ExtractedProfile,
   MissingField,
   Profile,
   ProfileInput,
@@ -124,6 +125,43 @@ function normalizeStoredEducation(
   }
 
   return education ? [education] : [emptyEducation()];
+}
+
+function mergeExtractedProfile(
+  current: ProfileInput,
+  extracted: ExtractedProfile,
+): ProfileInput {
+  return {
+    ...current,
+    fullName: extracted.fullName ?? current.fullName,
+    phone: extracted.phone ?? current.phone,
+    location: extracted.location ?? current.location,
+    linkedinUrl: extracted.linkedinUrl ?? current.linkedinUrl,
+    portfolioUrl: extracted.portfolioUrl ?? current.portfolioUrl,
+    workAuthorization: extracted.workAuthorization ?? current.workAuthorization,
+    currentTitle: extracted.currentTitle ?? current.currentTitle,
+    experienceLevel: extracted.experienceLevel ?? current.experienceLevel,
+    yearsExperience: extracted.yearsExperience ?? current.yearsExperience,
+    skills: extracted.skills?.length ? extracted.skills : current.skills,
+    industries: extracted.industries?.length
+      ? extracted.industries
+      : current.industries,
+    workExperience: extracted.workExperience?.length
+      ? extracted.workExperience.slice(0, 3)
+      : current.workExperience,
+    education: extracted.education?.length
+      ? extracted.education.slice(0, 3)
+      : current.education,
+    jobTitlesSeeking: extracted.jobTitlesSeeking?.length
+      ? extracted.jobTitlesSeeking
+      : current.jobTitlesSeeking,
+    remotePreference: extracted.remotePreference ?? current.remotePreference,
+    preferredLocations: extracted.preferredLocations?.length
+      ? extracted.preferredLocations
+      : current.preferredLocations,
+    salaryExpectation: extracted.salaryExpectation ?? current.salaryExpectation,
+    coverLetterTone: extracted.coverLetterTone ?? current.coverLetterTone,
+  };
 }
 
 function defaultInput(
@@ -289,11 +327,19 @@ function ProfileAttentionBanner({
   );
 }
 
-function ResumeSection({ profile }: { profile: Profile | null }) {
+function ResumeSection({
+  onExtracted,
+  profile,
+}: {
+  onExtracted: (profile: ExtractedProfile) => void;
+  profile: Profile | null;
+}) {
   const router = useRouter();
   const [resumeStatus, setResumeStatus] = useState<ActionResult>({});
+  const [extractStatus, setExtractStatus] = useState<ActionResult>({});
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isUploading, startUploadTransition] = useTransition();
+  const [isExtracting, startExtractTransition] = useTransition();
   const hasResume = Boolean(profile?.resume_pdf_key);
   const resumeFileName =
     profile?.resume_pdf_key?.split("/").pop() ?? "resume.pdf";
@@ -323,6 +369,7 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
 
   function handleUpload(file: File | undefined) {
     setResumeStatus({});
+    setExtractStatus({});
 
     if (!file) {
       return;
@@ -343,6 +390,24 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
       if (result.success) {
         router.refresh();
       }
+    });
+  }
+
+  function handleExtract() {
+    setExtractStatus({});
+
+    startExtractTransition(async () => {
+      const result = await extractProfile();
+
+      if (result.profile) {
+        onExtracted(result.profile);
+      }
+
+      if (result.error) {
+        console.error("[profile/extract]", result.error);
+      }
+
+      setExtractStatus({ error: result.error, success: result.success });
     });
   }
 
@@ -428,10 +493,18 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
                 Uploaded resume
               </p>
               <p className="mt-1 font-medium text-text-secondary text-xs">
-                Preview the current PDF before generating or replacing it.
+                Preview the current PDF or extract profile details from it.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <button
+                className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 font-semibold text-accent-foreground text-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isExtracting}
+                onClick={handleExtract}
+                type="button"
+              >
+                {isExtracting ? "Extracting..." : "Extract Profile"}
+              </button>
               <button
                 className="inline-flex min-h-10 items-center justify-center rounded-md border border-border bg-surface px-4 font-semibold text-sm text-text-primary shadow-[0_1px_2px_color-mix(in_srgb,var(--color-overlay)_8%,transparent)] transition-colors hover:bg-surface-secondary"
                 onClick={() => setIsPreviewOpen((current) => !current)}
@@ -456,6 +529,16 @@ function ResumeSection({ profile }: { profile: Profile | null }) {
               </a>
             </div>
           </div>
+          {extractStatus.error ? (
+            <p className="mt-4 font-medium text-error text-sm">
+              {extractStatus.error}
+            </p>
+          ) : null}
+          {extractStatus.success ? (
+            <p className="mt-4 font-medium text-sm text-success-dark">
+              {extractStatus.success}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -845,6 +928,13 @@ function ProfileForm({
     }));
   }
 
+  function applyExtracted(extracted: ExtractedProfile) {
+    setForm((current) => mergeExtractedProfile(current, extracted));
+    setSaveStatus({
+      success: "Extracted details added. Review and save your profile.",
+    });
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaveStatus({});
@@ -875,7 +965,7 @@ function ProfileForm({
         percentage={completion.percentage}
       />
       <ConnectedAccounts />
-      <ResumeSection profile={profile} />
+      <ResumeSection onExtracted={applyExtracted} profile={profile} />
       <SectionCard>
         <form onSubmit={handleSubmit}>
           <div>
